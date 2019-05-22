@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "Solution for some programming test exercises",
   "main": "index.js",
-  "scripts": {
-    "part1": "node src/part1_palindrome.js --",
-    "part1test": "node src/part1_palindrome.js --test"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/albertobastos/programming-test-may19.git"

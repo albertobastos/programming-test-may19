@@ -22,7 +22,7 @@ module.exports = {
 
 // command-line execution
 if (require.main === module) {
-    const argv = minimist(process.argv.slice(2));
+    const argv = parseArguments(process.argv.slice(2));
     if (argv.test) {
         // Test mode
         const test_inputs = {
