@@ -18,19 +18,74 @@ function run(dir, n, p, tt) {
         return acc;
     }, {});
 
-    console.log(docsByTerm);
+    // documents = list of {filename, tfs, tfidfs, ttfidf}
+    // documents[i].tfs[t] = tf for term t at document i, just calculated once
+    // documents[i].tfidfs[t] = tf-idf for term t at document i, re-calculated each time a new document appears
+    // documents[i].ttfidf = sum of tf-idf for all terms at document i, re-calculated each time a new document appears
+    let documents = [];
 
     fs.watch(dir, async (eventType, filename) => {
         if (eventType === 'rename') {
             const tfs = await calculateTFS(path.resolve(dir, filename), ttRules);
+
+            // update docsByTerm
             ttRules.forEach(termRule => {
                 if (tfs[termRule.term] > 0) {
                     docsByTerm[termRule.term]++;
                 }
             });
-            console.log(docsByTerm);
+
+            // add the new document, so far we only know the tfs
+            documents.push({
+                filename: filename,
+                tfs: tfs,
+                tfidfs: {},
+                ttfidf: 0
+            });
+
+            recalculateDocumentStats(documents, docsByTerm);
+            printTopDocuments(documents, n);
         }
     });
+}
+
+function recalculateDocumentStats(documents, docsByTerm) {
+    let terms = Object.keys(docsByTerm);
+
+    // calculate the idf for each term
+    const idfs = calculateIdfs(documents.length, terms, docsByTerm);
+
+    // re-calculate for each document the tfidf per term and the total ttfidf
+    documents.forEach(document => {
+        document.ttfidf = 0;
+        terms.forEach(term => {
+            tfidf = calculateTfIdf(document.tfs[term], idfs[term]);
+            document.tfidfs[term] = tfidf;
+            document.ttfidf += tfidf;
+        });
+    });
+
+    // sort documents descending by ttfidf
+    return documents.sort((docA, docB) => docB.ttfidf - docA.ttfidf);
+}
+
+function calculateIdfs(totalDocuments, terms, documentsByTerm) {
+    return terms.reduce((acc, term) => {
+        acc[term] = Math.log(totalDocuments / (1 + documentsByTerm[term]));
+        return acc;
+    }, {});
+}
+
+function calculateTfIdf(tf, idf) {
+    return tf * idf;
+}
+
+function printTopDocuments(documents, n) {
+    documents
+        .filter((doc, index) => index < n)
+        .forEach((doc, index) => {
+            console.log(`#${index + 1} ${Math.round(doc.ttfidf * 100) / 100} ${doc.filename}`);
+        });
 }
 
 async function calculateTFS(filepath, termRules) {
