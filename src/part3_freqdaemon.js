@@ -44,9 +44,25 @@ function run(dir, n, p, tt) {
             });
 
             recalculateDocumentStats(documents, docsByTerm);
-            printTopDocuments(documents, n);
         }
     });
+
+    // prepare scheduled method printing the top ranking
+    const printTopDocuments = () => {
+        console.log(`\nTop ${n} documents at ${new Date().toISOString()}:`);
+        documents
+            .filter((doc, index) => index < n)
+            .forEach((doc, index) => {
+                console.log(`#${index + 1} ${Math.round(doc.ttfidf * 100) / 100} ${doc.filename}`);
+            });
+        if (documents.length < 1) {
+            console.log('No documents yet.');
+        }
+        setTimeout(printTopDocuments, p * 1000);
+    }
+    setTimeout(printTopDocuments, p * 1000);
+
+    console.log('Process started.');
 }
 
 function recalculateDocumentStats(documents, docsByTerm) {
