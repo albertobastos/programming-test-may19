@@ -22,7 +22,7 @@ module.exports = {
 
 // command-line execution
 if (require.main === module) {
-    const argv = parseArguments(process.argv.slice(2));
+    const argv = minimist(process.argv.slice(2));
     if (argv.test) {
         // Test mode
         const test_inputs = {
@@ -48,7 +48,7 @@ if (require.main === module) {
         console.timeEnd('elapsed time (tests)');
 
         console.log(`${Object.keys(test_inputs).length} tests run`);
-        console.log(`${successes.length} succesful tests`);
+        console.log(`${successes.length} successful tests`);
         console.log(`${failures.length} failed tests`);
         if (failures.length > 0) {
             console.log('');

@@ -8,3 +8,7 @@ Part 2: K-complementary pairs
 * node src/part2_kpairs.js 10 1 2 3 4 5 6 7 8 9
 * node src/part2_kpairs.js --slow 10 1 2 3 4 5 6 7 8 9
 * node src/part2_kpairs.js --test
+
+Part 3: Term-frequency daemon
+
+* node src/part3_freqdaemon.js -d ./resources/docs -n 5 -p 10 -t "loren amet  dolor"

@@ -1,5 +1,3 @@
-const minimist = require('minimist');
-
 function findKPairs_slow(K, input) {
     let pairs = [];
     for (let i = 0; i < input.length - 1; i++) {
@@ -41,6 +39,8 @@ module.exports = {
     findKPairs_fast: findKPairs_fast
 };
 
+// minimist has some problems parsing negative numeric values, so
+// we use a custom parser for command-line arguments instead
 function parseArguments(args) {
     let argv = {};
     args.forEach(arg => {
@@ -105,7 +105,7 @@ if (require.main === module) {
         console.timeEnd('elapsed time');
 
         console.log();
-        console.log('K-pairs:');
+        console.log(`K-pairs (K=${K}):`);
         result && result.forEach(pair => console.log(`> [${pair[0]} , ${pair[1]}]`));
     }
 }
