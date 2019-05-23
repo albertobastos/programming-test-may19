@@ -84,7 +84,9 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
 }
 
 /**
- * Updates the tfidf for each (document, term) pair and the total ttfidf for each document
+ * Updates for each document the following attributes:
+ * - tfidf
+ * - ttfidf
  */
 function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) {
     let terms = Object.keys(docsByTerm);
@@ -218,7 +220,7 @@ if (require.main === module) {
 
     // parameter parsing and validation
 
-    DEBUG = !!argv.debug;
+    DEBUG = !!argv.debug; // debug flag
 
     if (typeof argv.t !== 'string') {
         console.error('Invalid search terms. Use "-t "here comes the terms".');
