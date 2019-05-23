@@ -11,4 +11,4 @@ Part 2: K-complementary pairs
 
 Part 3: Term-frequency daemon
 
-* node src/part3_freqdaemon.js -d ./resources/docs -n 5 -p 10 -t "loren amet  dolor"
+* node src/part3_freqdaemon.js -d ./resources/docs -n 5 -p 10 -t "loren amet"

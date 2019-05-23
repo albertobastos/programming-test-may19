@@ -3,6 +3,10 @@ const fs = require('fs');
 const readline = require('readline');
 const path = require('path');
 
+// select calc versions
+//const calculateTfs = calculateTfs_v1;
+const calculateTfs = calculateTfs_v2;
+
 function run(dir, n, p, tt) {
     // ttRules = list of {term, rule} objects relating terms with regex rules ready to use as matchers
     const ttRules = tt.map(term => {
@@ -26,7 +30,7 @@ function run(dir, n, p, tt) {
 
     fs.watch(dir, async (eventType, filename) => {
         if (eventType === 'rename') {
-            const tfs = await calculateTFS(path.resolve(dir, filename), ttRules);
+            const tfs = await calculateTfs(path.resolve(dir, filename), ttRules);
 
             // update docsByTerm
             ttRules.forEach(termRule => {
@@ -53,7 +57,7 @@ function run(dir, n, p, tt) {
         documents
             .filter((doc, index) => index < n)
             .forEach((doc, index) => {
-                console.log(`#${index + 1} ${Math.round(doc.ttfidf * 100) / 100} ${doc.filename}`);
+                console.log(`#${index + 1} ${Math.round(doc.ttfidf * 100) / 100} ${doc.filename}`, doc.tfs, doc.tfidfs);
             });
         if (documents.length < 1) {
             console.log('No documents yet.');
@@ -87,7 +91,10 @@ function recalculateDocumentStats(documents, docsByTerm) {
 
 function calculateIdfs(totalDocuments, terms, documentsByTerm) {
     return terms.reduce((acc, term) => {
-        acc[term] = Math.log(totalDocuments / (1 + documentsByTerm[term]));
+        // the recommended adjustment adding 1 to the number of documents including the term causes negative values for little set of documents
+        // we force the idf = 0 instead to avoid division by zero
+        const idf = documentsByTerm[term] > 0 ? Math.log(totalDocuments / (documentsByTerm[term])) : 0;
+        acc[term] = idf;
         return acc;
     }, {});
 }
@@ -96,15 +103,8 @@ function calculateTfIdf(tf, idf) {
     return tf * idf;
 }
 
-function printTopDocuments(documents, n) {
-    documents
-        .filter((doc, index) => index < n)
-        .forEach((doc, index) => {
-            console.log(`#${index + 1} ${Math.round(doc.ttfidf * 100) / 100} ${doc.filename}`);
-        });
-}
-
-async function calculateTFS(filepath, termRules) {
+// tf version #1: tf = absolute number of occurences for term t in the document
+async function calculateTfs_v1(filepath, termRules) {
     return new Promise(resolve => {
         const inStream = fs.createReadStream(filepath);
         const rl = readline.createInterface(inStream, null);
@@ -122,6 +122,36 @@ async function calculateTFS(filepath, termRules) {
         });
 
         rl.on('close', () => {
+            resolve(tfByTerm);
+        })
+    });
+}
+
+// tf version #2: tf = occurences of t / total word count
+async function calculateTfs_v2(filepath, termRules) {
+    return new Promise(resolve => {
+        const inStream = fs.createReadStream(filepath);
+        const rl = readline.createInterface(inStream, null);
+
+        const tfByTerm = termRules.reduce((acc, termRule) => {
+            acc[termRule.term] = 0;
+            return acc;
+        }, {});
+
+        let totalCount = 0;
+
+        rl.on('line', (line) => {
+            termRules.forEach(termRule => {
+                const match = line && line.match(termRule.rule);
+                match && (tfByTerm[termRule.term] += match.length);
+            });
+            totalCount += line.split(' ').filter(w => !!w).length;
+        });
+
+        rl.on('close', () => {
+            termRules.forEach(termRule => {
+                tfByTerm[termRule.term] = tfByTerm[termRule.term] / totalCount;
+            });
             resolve(tfByTerm);
         })
     });
