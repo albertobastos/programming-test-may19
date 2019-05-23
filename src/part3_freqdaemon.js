@@ -4,35 +4,56 @@ const readline = require('readline');
 const path = require('path');
 
 function run(dir, n, p, tt) {
+    // ttRules = list of {term, rule} objects relating terms with regex rules ready to use as matchers
     const ttRules = tt.map(term => {
         return {
             term: term.toLowerCase(),
             rule: new RegExp('\\b' + term + '\\b', 'ig')
         };
     });
-    fs.watch(dir, (eventType, filename) => {
+
+    // docsByTerm[term] = how many documents include the term
+    const docsByTerm = ttRules.reduce((acc, termRule) => {
+        acc[termRule.term] = 0;
+        return acc;
+    }, {});
+
+    console.log(docsByTerm);
+
+    fs.watch(dir, async (eventType, filename) => {
         if (eventType === 'rename') {
-            calculateTFS(path.resolve(dir, filename), ttRules);
+            const tfs = await calculateTFS(path.resolve(dir, filename), ttRules);
+            ttRules.forEach(termRule => {
+                if (tfs[termRule.term] > 0) {
+                    docsByTerm[termRule.term]++;
+                }
+            });
+            console.log(docsByTerm);
         }
     });
 }
 
-function calculateTFS(filepath, termRules) {
-    const inStream = fs.createReadStream(filepath);
-    const rl = readline.createInterface(inStream, null);
+async function calculateTFS(filepath, termRules) {
+    return new Promise(resolve => {
+        const inStream = fs.createReadStream(filepath);
+        const rl = readline.createInterface(inStream, null);
 
-    const tfByTerm = termRules.reduce((acc, termRule) => { acc[termRule.term] = 0; return acc; }, {});
+        const tfByTerm = termRules.reduce((acc, termRule) => {
+            acc[termRule.term] = 0;
+            return acc;
+        }, {});
 
-    rl.on('line', (line) => {
-        termRules.forEach(termRule => {
-            const match = line && line.match(termRule.rule);
-            match && (tfByTerm[termRule.term] += match.length);
+        rl.on('line', (line) => {
+            termRules.forEach(termRule => {
+                const match = line && line.match(termRule.rule);
+                match && (tfByTerm[termRule.term] += match.length);
+            });
         });
-    });
 
-    rl.on('close', () => {
-        //console.log(tfByTerm);
-    })
+        rl.on('close', () => {
+            resolve(tfByTerm);
+        })
+    });
 }
 
 module.exports = {
