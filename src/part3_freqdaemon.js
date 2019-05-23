@@ -1,11 +1,38 @@
 const minimist = require('minimist');
 const fs = require('fs');
+const readline = require('readline');
+const path = require('path');
 
 function run(dir, n, p, tt) {
-    // assumption: the program only watches for new documents, ignores the one already there at startup
-    fs.watch(dir, (eventType, filename) => {
-        console.log('event', eventType, 'file', filename);
+    const ttRules = tt.map(term => {
+        return {
+            term: term.toLowerCase(),
+            rule: new RegExp('\\b' + term + '\\b', 'ig')
+        };
     });
+    fs.watch(dir, (eventType, filename) => {
+        if (eventType === 'rename') {
+            calculateTFS(path.resolve(dir, filename), ttRules);
+        }
+    });
+}
+
+function calculateTFS(filepath, termRules) {
+    const inStream = fs.createReadStream(filepath);
+    const rl = readline.createInterface(inStream, null);
+
+    const tfByTerm = termRules.reduce((acc, termRule) => { acc[termRule.term] = 0; return acc; }, {});
+
+    rl.on('line', (line) => {
+        termRules.forEach(termRule => {
+            const match = line && line.match(termRule.rule);
+            match && (tfByTerm[termRule.term] += match.length);
+        });
+    });
+
+    rl.on('close', () => {
+        //console.log(tfByTerm);
+    })
 }
 
 module.exports = {
