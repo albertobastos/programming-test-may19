@@ -28,7 +28,7 @@
 
 ### Examples
 
-* node src/part3_freqdaemon.js -d ./resources/docs -n 10 -p 10 --tf freq --idf standard -t "donald trump"
+* node src/part3_freqdaemon.js -d ./resources/docs -n 10 -p 10 --tf freq --idf smooth -t "donald trump"
 
 ### Parameters
 
