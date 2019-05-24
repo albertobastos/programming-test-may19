@@ -1,3 +1,8 @@
+const minimist = require('minimist');
+
+/**
+ * Slow algorithm with O(N^2) processing cost.
+ */
 function findKPairs_slow(K, input) {
     let pairs = [];
     for (let i = 0; i < input.length - 1; i++) {
@@ -10,6 +15,9 @@ function findKPairs_slow(K, input) {
     return pairs;
 }
 
+/**
+ * Faster algorithm with O(N) processing cost.
+ */
 function findKPairs_fast(K, input) {
     let pairs = [];
     let indexesByValue = {};
@@ -39,36 +47,11 @@ module.exports = {
     findKPairs_fast: findKPairs_fast
 };
 
-// minimist has some problems parsing negative numeric values, so
-// we use a custom parser for command-line arguments instead
-function parseArguments(args) {
-    let argv = {};
-    args.forEach(arg => {
-        if (arg === '--slow') {
-            argv.slow = true;
-        } else if (arg === '--test') {
-            argv.test = true;
-        } else {
-            let arg_n = Number(arg);
-            if (!arg_n) {
-                console.error('Invalid number: ${arg}');
-                process.exit(-1);
-            }
-            // the first number is K, the rest is the array list
-            if (argv.K === undefined) {
-                argv.K = arg_n;
-            } else {
-                argv.list = argv.list || [];
-                argv.list.push(arg_n);
-            }
-        }
-    });
-    return argv;
-}
+
 
 // command-line execution
 if (require.main === module) {
-    const argv = parseArguments(process.argv.slice(2));
+    const argv = minimist(process.argv.slice(2));
     if (argv.test) {
         // Test mode
         let SIZES = [20, 100, 1000, 10000, 100000];
@@ -92,20 +75,39 @@ if (require.main === module) {
         });
     } else {
         // Normal execution mode
-        const input = argv.list;
-        const K = argv.K;
-        if (K === undefined) {
-            console.error('No K defined as first numeric value.');
+        const rawInput = argv.l;
+        const k = Number(argv.k);
+        const slow = argv.slow;
+
+        if (isNaN(k)) {
+            console.error('Invalid k value. Use "-k [val]" with val being an integer.');
             process.exit(-1);
         }
-        const func = argv.slow ? module.exports.findKPairs_slow : module.exports.findKPairs_fast;
+
+        console.log(argv);
+        console.log('raw', rawInput, typeof rawInput);
+
+        if (!rawInput || (typeof rawInput !== 'string')) {
+            console.error('No input list or invalid one. Use -l "a b c d e f g h" using integer values.')
+            process.exit(-1);
+        }
+
+        // convert space-separated string into number array
+        const input = rawInput.split(' ').filter(x => x !== '').map(Number);
+
+        if (input.findIndex(x => isNaN(x)) >= 0) {
+            console.error('Input list includes some non-numeric value.');
+            process.exit(-1);
+        }
+
+        const func = slow ? module.exports.findKPairs_slow : module.exports.findKPairs_fast;
 
         console.time('elapsed time');
-        const result = func(K, input);
+        const result = func(k, input);
         console.timeEnd('elapsed time');
 
         console.log();
-        console.log(`K-pairs (K=${K}):`);
+        console.log(`K-pairs (K=${k}):`);
         result && result.forEach(pair => console.log(`> [${pair[0]} , ${pair[1]}]`));
     }
 }
