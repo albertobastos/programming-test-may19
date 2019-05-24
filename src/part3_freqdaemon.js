@@ -1,9 +1,18 @@
 require('console-stamp')(console, 'HH:MM:ss.l');
 
+const cluster = require('cluster');
+// workers code is available in another .js
+if (!cluster.isMaster) {
+  require('./part3_worker');
+  return;
+}
+
+// MASTER MODE
+
 const minimist = require('minimist');
 const fs = require('fs');
-const readline = require('readline');
 const path = require('path');
+const cpuCount = require('os').cpus().length;
 
 let DEBUG; // additional console messages (use --debug)
 
@@ -45,39 +54,60 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
   // documents[i].ttfidf = sum of tf-idf for all terms at document i, re-calculated each time a new document appears
   let documents = [];
 
+  // prepare as many workers for file processing as available cores
+  let workers = [];
+  for (let i = 0; i < cpuCount; i++) {
+    workers.push(cluster.fork());
+  }
+
+  const documentFrequenciesResponse = function ({ filename, frequencies }) {
+    const file_tfs = tfs_func(frequencies, frequencies._, terms);
+
+    // update docsByTerm adding 1 to each term that appears in the current document
+    terms.filter(term => frequencies[term] > 0).forEach(term => docsByTerm[term]++);
+
+    // push the new document, but so far we only know the tfs
+    documents.push({
+      filename: filename,
+      tfs: file_tfs,
+      ttfidf: 0,
+      debug: DEBUG
+    });
+
+    // once the new document tfs are available, we update the rest of data for all the set
+    recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
+    debugTimeEnd(`processing ${filename}`);
+  }
+
+  // listen to responses on each worker with document stats
+  workers.forEach(worker => worker.on('message', documentFrequenciesResponse));
+
   fs.watch(dir, async (eventType, filename) => {
     if (eventType === 'rename') {
       debugTime(`processing ${filename}`);
-      const fileFrequencies = await getFileStats(path.resolve(dir, filename), terms);
-      const file_tfs = tfs_func(fileFrequencies, fileFrequencies._, terms);
-
-      // update docsByTerm adding 1 to each term that appears in the current document
-      terms.filter(term => fileFrequencies[term] > 0).forEach(term => docsByTerm[term]++);
-
-      // push the new document, but so far we only know the tfs
-      documents.push({
-        filename: filename,
-        tfs: file_tfs,
-        ttfidf: 0
+      // calling workers in a round-robin fashion
+      const worker = workers.pop();
+      worker.send({
+        filepath: path.resolve(dir, filename),
+        filename,
+        terms
       });
-
-      // once the new document tfs are available, we update the rest of data for all the set
-      recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
-      debugTimeEnd(`processing ${filename}`);
+      workers.push(worker);
     }
   });
 
   // prepare scheduled method printing the top ranking
   const printTopDocuments = () => {
-    console.log(`\nTop ${n} documents at ${new Date().toISOString()}:`);
-    documents
+    let strRanking = documents
       .filter((doc, index) => index < n)
-      .forEach((doc, index) => {
-        console.log(`#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`);
-      });
+      .map((doc, index) => `#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`)
+      .join('\n');
+
     if (documents.length < 1) {
-      console.log('No documents yet.');
+      strRanking = 'No documents yet.';
     }
+
+    console.log(`\n\nTop ${n} documents:\n${strRanking}\n`);
     setTimeout(printTopDocuments, p * 1000);
   }
   setTimeout(printTopDocuments, p * 1000);
