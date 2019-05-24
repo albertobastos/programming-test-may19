@@ -41,8 +41,10 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
 
     fs.watch(dir, async (eventType, filename) => {
         if (eventType === 'rename') {
+            //console.time(`stats & tfs ${filename}`);
             const fileFrequencies = await getFileStats(path.resolve(dir, filename), terms);
             const file_tfs = tfs_func(fileFrequencies, fileFrequencies._, terms);
+            //console.timeEnd(`stats & tfs ${filename}`);
 
             // update docsByTerm adding 1 to each term that appears in the current document
             terms.filter(term => fileFrequencies[term] > 0).forEach(term => docsByTerm[term]++);
@@ -61,7 +63,9 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
             });
 
             // once the new document tfs are available, we update the rest of data for all the set
+            //console.time(`ranking after ${filename}`);
             recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
+            //console.timeEnd(`ranking after ${filename}`);
         }
     });
 
@@ -127,7 +131,7 @@ async function getFileStats(filepath, terms) {
         const rl = readline.createInterface(fs.createReadStream(filepath), null);
 
         rl.on('line', line => {
-            // update total word count
+            // update total word count (ignoring extra white spaces)
             result._ += line.split(' ').filter(x => !!x).length;
             // update count for each term
             terms.forEach(term => {
