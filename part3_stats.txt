@@ -1,4 +1,4 @@
-workers --> 571 - 277 = 294ms
+workers (readline) --> 571 - 277 = 294ms
 
 [17:40:37.277] [LOG]    processing bbc_assange_wikileaks.txt: 50.184ms
 [17:40:37.294] [LOG]    processing bbc_brazil_homophobia.txt: 62.488ms
@@ -33,7 +33,42 @@ workers --> 571 - 277 = 294ms
 [17:40:37.565] [LOG]    processing ng_stpetersburg.txt: 27.328ms
 [17:40:37.571] [LOG]    processing ng_wildlifeindustry.txt: 21.005ms
 
-no workers and async/await --> 722 - 520 = 202ms
+workers (eventstream) --> 317 - 142 = 175ms
+
+[18:12:56.142] [LOG]    processing bbc_assange_wikileaks.txt: 23.823ms
+[18:12:56.145] [LOG]    processing bbc_facebook_fake_profiles.txt: 16.647ms
+[18:12:56.146] [LOG]    processing bbc_nintendo_ban_belgium.txt: 14.655ms
+[18:12:56.147] [LOG]    processing bbc_brazil_homophobia.txt: 24.435ms
+[18:12:56.148] [LOG]    processing bbc_climate_strike.txt: 22.911ms
+[18:12:56.148] [LOG]    processing bbc_spacex_satellites.txt: 8.181ms
+[18:12:56.155] [LOG]    processing bbc_theresamay.txt: 5.309ms
+[18:12:56.159] [LOG]    processing bbc_trump_huawei.txt: 7.941ms
+[18:12:56.160] [LOG]    processing bbc_trump_mentalstability.txt: 6.778ms
+[18:12:56.164] [LOG]    processing cnn_everest_traffic_jam.txt: 6.256ms
+[18:12:56.188] [LOG]    processing cnn_porsche.txt: 19.124ms
+[18:12:56.192] [LOG]    processing cnn_flight_attendant.txt: 29.017ms
+[18:12:56.193] [LOG]    processing cnn_india_referendum.txt: 26.133ms
+[18:12:56.197] [LOG]    processing cnn_trump_pelosi.txt: 10.712ms
+[18:12:56.214] [LOG]    processing espn_f1_monaco.txt: 13.720ms
+[18:12:56.215] [LOG]    processing espn_dani_alves.txt: 20.255ms
+[18:12:56.218] [LOG]    processing espn_french_open.txt: 15.218ms
+[18:12:56.232] [LOG]    processing espn_goalkeepers.txt: 18.800ms
+[18:12:56.262] [LOG]    processing ng_coffee_zimbabwe.txt: 21.992ms
+[18:12:56.263] [LOG]    processing ng_coralreefs.txt: 21.930ms
+[18:12:56.274] [LOG]    processing ng_aladdin.txt: 36.999ms
+[18:12:56.275] [LOG]    processing espn_nba_supermax.txt: 41.309ms
+[18:12:56.276] [LOG]    processing espn_nba_toronto.txt: 40.534ms
+[18:12:56.278] [LOG]    processing ng_dragons.txt: 34.147ms
+[18:12:56.280] [LOG]    processing ng_chimpanzees.txt: 41.363ms
+[18:12:56.281] [LOG]    processing ng_ebola.txt: 19.715ms
+[18:12:56.291] [LOG]    processing ng_geochallenge.txt: 6.198ms
+[18:12:56.306] [LOG]    processing ng_elephant_hunting.txt: 23.613ms
+[18:12:56.309] [LOG]    processing ng_hongkong.txt: 22.524ms
+[18:12:56.312] [LOG]    processing ng_slave_ship.txt: 24.220ms
+[18:12:56.315] [LOG]    processing ng_stpetersburg.txt: 25.737ms
+[18:12:56.317] [LOG]    processing ng_wildlifeindustry.txt: 24.028ms
+
+no workers (async/await, readline) --> 722 - 520 = 202ms
 
 [17:45:13.520] [LOG]    processing bbc_assange_wikileaks.txt: 23.262ms
 [17:45:13.528] [LOG]    processing bbc_brazil_homophobia.txt: 21.468ms
@@ -68,7 +103,7 @@ no workers and async/await --> 722 - 520 = 202ms
 [17:45:13.703] [LOG]    processing ng_stpetersburg.txt: 25.591ms
 [17:45:13.722] [LOG]    processing ng_wildlifeindustry.txt: 31.545ms
 
-no workers and Promise.then --> 1080 - 802 = 278ms
+no workers (Promise.then, readline) --> 1080 - 802 = 278ms
 
 [17:46:37.802] [LOG]    processing bbc_assange_wikileaks.txt: 21.958ms
 [17:46:37.807] [LOG]    processing bbc_brazil_homophobia.txt: 17.103ms
