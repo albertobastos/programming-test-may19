@@ -33,9 +33,8 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
         return acc;
     }, {});
 
-    // documents = list of { filename, tfs, tfidfs, ttfidf }
+    // documents = list of { filename, tfs, ttfidf }
     // documents[i].tfs[t] = tf for term t at document i, just calculated once
-    // documents[i].tfidfs[t] = tf-idf for term t at document i, re-calculated each time a new document appears
     // documents[i].ttfidf = sum of tf-idf for all terms at document i, re-calculated each time a new document appears
     let documents = [];
 
@@ -58,7 +57,6 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
             documents.push({
                 filename: filename,
                 tfs: file_tfs,
-                tfidfs: {},
                 ttfidf: 0
             });
 
@@ -88,9 +86,7 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
 }
 
 /**
- * Updates for each document the following attributes:
- * - tfidf
- * - ttfidf
+ * Updates the ttfidf value for each document.
  */
 function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) {
     let terms = Object.keys(docsByTerm);
@@ -104,9 +100,7 @@ function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) 
     documents.forEach(document => {
         document.ttfidf = 0;
         terms.forEach(term => {
-            tfidf = tfidf_func(document.tfs[term], idfs[term]);
-            document.tfidfs[term] = tfidf;
-            document.ttfidf += tfidf;
+            document.ttfidf += tfidf_func(document.tfs[term], idfs[term]);;
         });
     });
 
