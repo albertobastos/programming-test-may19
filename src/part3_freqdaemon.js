@@ -90,7 +90,6 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
     if (eventType === 'rename') {
       // calling workers in a round-robin fashion
       const worker = workers.pop();
-      console.log('sending message to worker', filename);
       worker.send({
         filepath: path.resolve(dir, filename),
         filename,
