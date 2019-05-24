@@ -1,3 +1,5 @@
+require('console-stamp')(console, 'HH:MM:ss.l');
+
 const cluster = require('cluster');
 // workers code is available in another .js
 if (!cluster.isMaster) {
@@ -58,16 +60,11 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
     workers.push(cluster.fork());
   }
 
-  const fileStatsResponse = function ({ filename, frequencies }) {
+  const documentFrequenciesResponse = function ({ filename, frequencies }) {
     const file_tfs = tfs_func(frequencies, frequencies._, terms);
 
     // update docsByTerm adding 1 to each term that appears in the current document
     terms.filter(term => frequencies[term] > 0).forEach(term => docsByTerm[term]++);
-
-    debugLog('filename:', filename);
-    debugLog('frequencies:', JSON.stringify(frequencies));
-    debugLog('tfs:', JSON.stringify(file_tfs));
-    debugLog('docs:', JSON.stringify(docsByTerm));
 
     // push the new document, but so far we only know the tfs
     documents.push({
@@ -78,16 +75,16 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
     });
 
     // once the new document tfs are available, we update the rest of data for all the set
-    debugTime(`ranking after ${filename}`);
     recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
-    debugTimeEnd(`ranking after ${filename}`);
+    debugTimeEnd(`processing ${filename}`);
   }
 
-  // listen to responses on each worker with file stats
-  workers.forEach(worker => worker.on('message', fileStatsResponse));
+  // listen to responses on each worker with document stats
+  workers.forEach(worker => worker.on('message', documentFrequenciesResponse));
 
   fs.watch(dir, async (eventType, filename) => {
     if (eventType === 'rename') {
+      debugTime(`processing ${filename}`);
       // calling workers in a round-robin fashion
       const worker = workers.pop();
       worker.send({
@@ -101,15 +98,16 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
 
   // prepare scheduled method printing the top ranking
   const printTopDocuments = () => {
-    console.log(`\nTop ${n} documents at ${new Date().toISOString()}:`);
-    documents
+    let strRanking = documents
       .filter((doc, index) => index < n)
-      .forEach((doc, index) => {
-        console.log(`#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`);
-      });
+      .map((doc, index) => `#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`)
+      .join('\n');
+
     if (documents.length < 1) {
-      console.log('No documents yet.');
+      strRanking = 'No documents yet.';
     }
+
+    console.log(`\n\nTop ${n} documents:\n${strRanking}\n`);
     setTimeout(printTopDocuments, p * 1000);
   }
   setTimeout(printTopDocuments, p * 1000);
@@ -126,7 +124,6 @@ function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) 
   // calculate the idf for each term
   const idfs = idfs_func(documents.length, docsByTerm, terms);
 
-  debugLog('idfs:', JSON.stringify(idfs));
 
   // re-calculate for each document the tfidf per term and the total ttfidf
   documents.forEach(document => {
