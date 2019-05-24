@@ -45,39 +45,41 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
   // documents[i].ttfidf = sum of tf-idf for all terms at document i, re-calculated each time a new document appears
   let documents = [];
 
-  fs.watch(dir, async (eventType, filename) => {
+  fs.watch(dir, (eventType, filename) => {
     if (eventType === 'rename') {
       debugTime(`processing ${filename}`);
-      const fileFrequencies = await getFileStats(path.resolve(dir, filename), terms);
-      const file_tfs = tfs_func(fileFrequencies, fileFrequencies._, terms);
+      getFileStats(path.resolve(dir, filename), terms).then((fileFrequencies) => {
+        const file_tfs = tfs_func(fileFrequencies, fileFrequencies._, terms);
 
-      // update docsByTerm adding 1 to each term that appears in the current document
-      terms.filter(term => fileFrequencies[term] > 0).forEach(term => docsByTerm[term]++);
+        // update docsByTerm adding 1 to each term that appears in the current document
+        terms.filter(term => fileFrequencies[term] > 0).forEach(term => docsByTerm[term]++);
 
-      // push the new document, but so far we only know the tfs
-      documents.push({
-        filename: filename,
-        tfs: file_tfs,
-        ttfidf: 0
+        // push the new document, but so far we only know the tfs
+        documents.push({
+          filename: filename,
+          tfs: file_tfs,
+          ttfidf: 0
+        });
+
+        // once the new document tfs are available, we update the rest of data for all the set
+        recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
+        debugTimeEnd(`processing ${filename}`);
       });
-
-      // once the new document tfs are available, we update the rest of data for all the set
-      recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
-      debugTimeEnd(`processing ${filename}`);
     }
   });
 
   // prepare scheduled method printing the top ranking
   const printTopDocuments = () => {
-    console.log(`\nTop ${n} documents at ${new Date().toISOString()}:`);
-    documents
+    let strRanking = documents
       .filter((doc, index) => index < n)
-      .forEach((doc, index) => {
-        console.log(`#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`);
-      });
+      .map((doc, index) => `#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`)
+      .join('\n');
+
     if (documents.length < 1) {
-      console.log('No documents yet.');
+      strRanking = 'No documents yet.';
     }
+
+    console.log(`\n\nTop ${n} documents:\n${strRanking}\n`);
     setTimeout(printTopDocuments, p * 1000);
   }
   setTimeout(printTopDocuments, p * 1000);
