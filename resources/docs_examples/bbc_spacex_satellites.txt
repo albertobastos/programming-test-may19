@@ -1,0 +1,74 @@
+SpaceX puts up 60 internet satellites
+By Jonathan Amos
+BBC Science Correspondent
+1 hour ago
+Share this with Facebook Share this with Messenger Share this with Twitter Share this with Email Share
+Image copyrightGETTY IMAGES
+Image caption
+The coming wave: There are several satellite broadband projects in development
+The SpaceX company has begun the roll-out of its orbiting broadband system.
+
+A Falcon-9 rocket launched from Cape Canaveral in Florida late on Thursday, packed with 60 satellites capable of giving users on the ground high-speed connections to the internet.
+
+Entrepreneur Elon Musk's firm aims eventually to loft nearly 12,000 spacecraft for its "Starlink" network.
+
+SpaceX is one of several commercial outfits with permission to fly an internet mega-constellation.
+
+Others include the UK-based start-up OneWeb, which began its roll-out in February with six operational spacecraft.
+
+Online retailer Amazon also has ambitions in this market. It's working on a 3,200-satellite proposal known as Project Kuiper.
+
+All the concepts envisage flying spacecraft in a low-Earth orbit less than 2,000km above the planet. This will minimise the delay, or latency, in the internet connections.
+
+OneWeb launches pathfinder satellites
+Old satellites will need 'rapid disposal'
+Launch completes Iridium refresh
+The Falcon lifted off from Space Launch Complex 40 (SLC-40) at Cape Canaveral Air Force Station at 22:30 local time (02:30 GMT, Friday).
+
+Deployment of the Starlink satellites was successfully completed just over an hour into the flight, SpaceX announced.
+
+What do we know about the internet project?
+Image copyrightSPACEX
+Image caption
+The flat-pack satellites pictured inside the payload fairing of the Falcon-9 rocket
+SpaceX has kept secret much of the development activity on its multi-billion-dollar broadband plan.
+
+The company launched a couple of technology demonstrators, Tintin-A and Tintin-B, in February 2018, but the spacecraft that went up on Thursday look very different.
+
+Pictured by Mr Musk in a tweet earlier this month, these latest platforms appeared to have a "flat-pack" design.
+
+And in a briefing with reporters on 15 May, the CEO gave additional information.
+
+Each satellite weighs 227kg, has multiple high-throughput antennas and a single solar array.
+
+The platforms are also equipped with electric propulsion - a system that expels electrically charged atoms of krypton to provide thrust.
+
+The engine is needed to lift a Starlink from its drop-off altitude of 440km to its operational height of 550km.
+
+The propulsion system will also act to maintain the satellite's correct position in the sky, and to bring it down at the end of its service life.
+
+Mr Musk said the newly launched Starlinks were an iterative design and later platforms would have a higher specification, featuring for example inter-satellite links.
+
+It was "one of the hardest engineering projects I've ever seen done," he said, and cautioned that much could go wrong in the early phases of the roll-out.
+
+Image copyrightREUTERS
+Image caption
+Mr Musk says Starlink has been one of his most challenging projects
+Is there room up there for all these satellites?
+There is increasing unease about the number of satellites that could be launched in the next few years - for many purposes, not just broadband delivery - and how this might potentially clog up the space environment.
+
+To give context to what is about to happen - there are just 2,000 operational satellites in orbit today, according to the Union of Concerned Scientists' database. SpaceX's ambitions alone, if fully realised, would dwarf this population.
+
+The great fear is that congested orbital highways will result in collisions and the production of debris that then initiates further destructive encounters.
+
+SpaceX said it intended to be a responsible actor and had given its satellites the ability themselves to track orbital debris and to autonomously avoid it.
+
+What is more, it added, all the Starlinks were 95% constructed from components that would burn up rapidly on re-entry to the atmosphere when decommissioned - exceeding all current safety standards.
+
+It will be some time before SpaceX can actually offer connections to the internet.
+
+For that it must launch many more than the 60 spacecraft on Thursday's Falcon.
+
+Six further rocket flights will have to take place before minor broadband coverage is achieved. A dozen launches are required for moderate coverage, says Mr Musk.
+
+He hopes ultimately that revenue from the telecommunications network can fund some of his other ideas: "We think this is a key stepping stone on the way towards establishing a self-sustaining city on Mars and a base on the Moon."
