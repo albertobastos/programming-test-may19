@@ -7,12 +7,11 @@ if (cluster.isMaster) {
   process.exit(-1);
 }
 
-process.on('message', function ({ filename, filepath, terms }) {
-  getFileStats(filepath, terms).then((frequencies) => {
-    process.send({
-      filename,
-      frequencies
-    });
+process.on('message', async function ({ filename, filepath, terms }) {
+  let frequencies = await getFileStats(filepath, terms);
+  process.send({
+    filename,
+    frequencies
   });
 });
 
