@@ -23,6 +23,11 @@ const tfIdfVariants = {
     default: getTfIdf
 };
 
+// helper loggers
+const debugLog = function () { DEBUG && console.log.apply(this, arguments) };
+const debugTime = function () { DEBUG && console.time.apply(this, arguments) };
+const debugTimeEnd = function () { DEBUG && console.timeEnd.apply(this, arguments) };
+
 function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
     // ensure unique terms to avoid repeating work
     const terms = [...new Set(tt.map(term => term.toLowerCase()))];
@@ -40,18 +45,18 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
 
     fs.watch(dir, async (eventType, filename) => {
         if (eventType === 'rename') {
-            //console.time(`stats & tfs ${filename}`);
+            debugTime(`stats & tfs ${filename}`);
             const fileFrequencies = await getFileStats(path.resolve(dir, filename), terms);
             const file_tfs = tfs_func(fileFrequencies, fileFrequencies._, terms);
-            //console.timeEnd(`stats & tfs ${filename}`);
+            debugTimeEnd(`stats & tfs ${filename}`);
 
             // update docsByTerm adding 1 to each term that appears in the current document
             terms.filter(term => fileFrequencies[term] > 0).forEach(term => docsByTerm[term]++);
 
-            DEBUG && console.log('filename:', filename);
-            DEBUG && console.log('frequencies:', JSON.stringify(fileFrequencies));
-            DEBUG && console.log('tfs:', JSON.stringify(file_tfs));
-            DEBUG && console.log('docs:', JSON.stringify(docsByTerm));
+            debugLog('filename:', filename);
+            debugLog('frequencies:', JSON.stringify(fileFrequencies));
+            debugLog('tfs:', JSON.stringify(file_tfs));
+            debugLog('docs:', JSON.stringify(docsByTerm));
 
             // push the new document, but so far we only know the tfs
             documents.push({
@@ -61,9 +66,9 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
             });
 
             // once the new document tfs are available, we update the rest of data for all the set
-            //console.time(`ranking after ${filename}`);
+            debugTime(`ranking after ${filename}`);
             recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
-            //console.timeEnd(`ranking after ${filename}`);
+            debugTimeEnd(`ranking after ${filename}`);
         }
     });
 
@@ -94,7 +99,7 @@ function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) 
     // calculate the idf for each term
     const idfs = idfs_func(documents.length, docsByTerm, terms);
 
-    DEBUG && console.log('idfs:', JSON.stringify(idfs));
+    debugLog('idfs:', JSON.stringify(idfs));
 
     // re-calculate for each document the tfidf per term and the total ttfidf
     documents.forEach(document => {
