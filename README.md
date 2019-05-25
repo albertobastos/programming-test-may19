@@ -38,3 +38,4 @@
 * *--tf*: Version of tf(t,d) function to use. Accepted values are "raw", "freq" and "log".
 * *--idf*: Version of idf(t,D) function to use. Accepted values are "standard" and "smooth".
 * *-t*: List of terms to analyze, separated with blank spaces.
+* *--debug*: Show the elapsed time for each re-indexing caused by a new document detected.
