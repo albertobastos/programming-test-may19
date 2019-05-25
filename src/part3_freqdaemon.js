@@ -1,18 +1,18 @@
-require('console-stamp')(console, 'HH:MM:ss.l');
+require("console-stamp")(console, "HH:MM:ss.l");
 
-const cluster = require('cluster');
+const cluster = require("cluster");
 // workers code is available in another .js
 if (!cluster.isMaster) {
-  require('./part3_worker');
+  require("./part3_worker");
   return;
 }
 
 // MASTER MODE
 
-const minimist = require('minimist');
-const fs = require('fs');
-const path = require('path');
-const cpuCount = require('os').cpus().length;
+const minimist = require("minimist");
+const fs = require("fs");
+const path = require("path");
+const cpuCount = require("os").cpus().length;
 
 let DEBUG; // additional console messages (use --debug)
 
@@ -35,9 +35,15 @@ const tfIdfVariants = {
 };
 
 // helper loggers
-const debugLog = function () { DEBUG && console.log.apply(this, arguments) };
-const debugTime = function () { DEBUG && console.time.apply(this, arguments) };
-const debugTimeEnd = function () { DEBUG && console.timeEnd.apply(this, arguments) };
+const debugLog = function() {
+  DEBUG && console.log.apply(this, arguments);
+};
+const debugTime = function() {
+  DEBUG && console.time.apply(this, arguments);
+};
+const debugTimeEnd = function() {
+  DEBUG && console.timeEnd.apply(this, arguments);
+};
 
 function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
   // ensure unique terms to avoid repeating work
@@ -60,11 +66,13 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
     workers.push(cluster.fork());
   }
 
-  const documentFrequenciesResponse = function ({ filename, frequencies }) {
+  const documentFrequenciesResponse = function({ filename, frequencies }) {
     const file_tfs = tfs_func(frequencies, frequencies._, terms);
 
     // update docsByTerm adding 1 to each term that appears in the current document
-    terms.filter(term => frequencies[term] > 0).forEach(term => docsByTerm[term]++);
+    terms
+      .filter(term => frequencies[term] > 0)
+      .forEach(term => docsByTerm[term]++);
 
     // push the new document, but so far we only know the tfs
     documents.push({
@@ -77,13 +85,13 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
     // once the new document tfs are available, we update the rest of data for all the set
     recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm);
     debugTimeEnd(`processing ${filename}`);
-  }
+  };
 
   // listen to responses on each worker with document stats
-  workers.forEach(worker => worker.on('message', documentFrequenciesResponse));
+  workers.forEach(worker => worker.on("message", documentFrequenciesResponse));
 
   fs.watch(dir, async (eventType, filename) => {
-    if (eventType === 'rename') {
+    if (eventType === "rename") {
       debugTime(`processing ${filename}`);
       // calling workers in a round-robin fashion
       const worker = workers.pop();
@@ -99,26 +107,36 @@ function run(dir, n, p, tt, tfs_func, idfs_func, tfidf_func) {
   // prepare scheduled method printing the top ranking
   const printTopDocuments = () => {
     let strRanking = documents
-      .filter((doc, index) => index < n)
-      .map((doc, index) => `#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${doc.filename}`)
-      .join('\n');
+      .slice(0, n)
+      .map(
+        (doc, index) =>
+          `#${index + 1} ${Math.round(doc.ttfidf * 1000) / 1000} ${
+            doc.filename
+          }`
+      )
+      .join("\n");
 
     if (documents.length < 1) {
-      strRanking = 'No documents yet.';
+      strRanking = "No documents yet.";
     }
 
     console.log(`\n\nTop ${n} documents:\n${strRanking}\n`);
     setTimeout(printTopDocuments, p * 1000);
-  }
+  };
   setTimeout(printTopDocuments, p * 1000);
 
-  console.log('Process started.');
+  console.log("Process started.");
 }
 
 /**
  * Updates the ttfidf value for each document.
  */
-function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) {
+function recalculateDocumentStats(
+  idfs_func,
+  tfidf_func,
+  documents,
+  docsByTerm
+) {
   let terms = Object.keys(docsByTerm);
 
   // calculate the idf for each term
@@ -128,7 +146,7 @@ function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) 
   documents.forEach(document => {
     document.ttfidf = 0;
     terms.forEach(term => {
-      document.ttfidf += tfidf_func(document.tfs[term], idfs[term]);;
+      document.ttfidf += tfidf_func(document.tfs[term], idfs[term]);
     });
   });
 
@@ -136,49 +154,14 @@ function recalculateDocumentStats(idfs_func, tfidf_func, documents, docsByTerm) 
   return documents.sort((docA, docB) => docB.ttfidf - docA.ttfidf);
 }
 
-/**
- * Given a plain text file's absolute path and a list of terms, resolves with
- * an object containing the number of occurences each term appear on the file
- * and the total word count using the special key _.
- */
-async function getFileStats(filepath, terms) {
-  return new Promise((resolve, reject) => {
-    // result[term] = number of occurences of the term
-    // result._ = total word count
-    const result = terms.reduce((acc, term) => {
-      acc[term] = 0;
-      return acc;
-    }, { _: 0 });
-
-    const rl = readline.createInterface(fs.createReadStream(filepath), null);
-
-    rl.on('line', line => {
-      // update total word count (ignoring extra white spaces)
-      result._ += line.split(' ').filter(x => !!x).length;
-      // update count for each term
-      terms.forEach(term => {
-        const match = line.match(new RegExp(`\\b${term}\\b`, 'ig'));
-        match && (result[term] += match.length);
-      });
-    });
-
-    rl.on('close', () => {
-      // return file stats
-      resolve(result);
-    });
-
-    rl.on('error', reject);
-  });
-}
-
 // ===========
 // TF VARIANTS
-// =========== 
+// ===========
 
 // tf as "raw count": for each term, just the total amount of occurences for it
 function getTfs_rawCount(frequencies, wordCount, terms) {
   return terms.reduce((acc, term) => {
-    acc[term] = frequencies[term]
+    acc[term] = frequencies[term];
     return acc;
   }, {});
 }
@@ -215,7 +198,8 @@ function getTfs_logNormalization(frequencies, wordCount, terms) {
 function getIdfs_standard(totalDocuments, docsByTerm, terms) {
   return terms.reduce((acc, term) => {
     const termDocumentCount = docsByTerm[term] || 0;
-    acc[term] = termDocumentCount > 0 ? Math.log(totalDocuments / docsByTerm[term]) : 0;
+    acc[term] =
+      termDocumentCount > 0 ? Math.log(totalDocuments / docsByTerm[term]) : 0;
     return acc;
   }, {});
 }
@@ -248,7 +232,7 @@ if (require.main === module) {
 
   DEBUG = !!argv.debug; // debug flag
 
-  if (typeof argv.t !== 'string') {
+  if (typeof argv.t !== "string") {
     console.error('Invalid search terms. Use "-t "here comes the terms".');
     process.exit(-1);
   }
@@ -256,12 +240,12 @@ if (require.main === module) {
   const dir = argv.d;
   const n = Number(argv.n);
   const p = Number(argv.p);
-  const tt = argv.t.split(' ').filter(t => !!t);
+  const tt = argv.t.split(" ").filter(t => !!t);
   const tfs_func = tfsVariants[argv.tf];
   const idfs_func = idfsVariants[argv.idf];
 
   if (!dir) {
-    console.error('You must specify the documents folder with the -d flag.');
+    console.error("You must specify the documents folder with the -d flag.");
     process.exit(-1);
   }
 
@@ -276,22 +260,34 @@ if (require.main === module) {
   }
 
   if (!n || n < 1) {
-    console.error('Invalid number of top results to show. Use "-n val" with val being a positive integer value.');
+    console.error(
+      'Invalid number of top results to show. Use "-n val" with val being a positive integer value.'
+    );
     process.exit(-1);
   }
 
   if (!p || p < 1) {
-    console.error('Invalid period of time. Use "-p [value]" with "-p val" with val being a positive integer value.');
+    console.error(
+      'Invalid period of time. Use "-p [value]" with "-p val" with val being a positive integer value.'
+    );
     process.exit(-1);
   }
 
   if (!tfs_func) {
-    console.error(`Unknown -tf function ${argv.tf}. Supported functions are [${Object.keys(tfsVariants).join(', ')}]`);
+    console.error(
+      `Unknown -tf function ${argv.tf}. Supported functions are [${Object.keys(
+        tfsVariants
+      ).join(", ")}]`
+    );
     process.exit(-1);
   }
 
   if (!idfs_func) {
-    console.error(`Unknown -idf function ${argv.idf}. Supported functions are [${Object.keys(idfsVariants).join(', ')}]`);
+    console.error(
+      `Unknown -idf function ${
+        argv.idf
+      }. Supported functions are [${Object.keys(idfsVariants).join(", ")}]`
+    );
     process.exit(-1);
   }
 

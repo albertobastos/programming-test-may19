@@ -1,4 +1,4 @@
-const minimist = require('minimist');
+const minimist = require("minimist");
 
 /**
  * Slow algorithm with O(N^2) processing cost.
@@ -31,11 +31,12 @@ function findKPairs_fast(K, input) {
     if (indexesByValue[targetVal]) {
       indexesByValue[val].forEach(i => {
         indexesByValue[targetVal].forEach(j => {
-          if (i < j) { // avoid repeated!
+          if (i < j) {
+            // avoid repeated!
             pairs.push([i, j]);
           }
         });
-      })
+      });
     }
   });
 
@@ -46,8 +47,6 @@ module.exports = {
   findKPairs_slow: findKPairs_slow,
   findKPairs_fast: findKPairs_fast
 };
-
-
 
 // command-line execution
 if (require.main === module) {
@@ -80,34 +79,44 @@ if (require.main === module) {
     const slow = argv.slow;
 
     if (isNaN(k)) {
-      console.error('Invalid k value. Use "-k [val]" with val being an integer.');
+      console.error(
+        'Invalid k value. Use "-k [val]" with val being an integer.'
+      );
       process.exit(-1);
     }
 
     console.log(argv);
-    console.log('raw', rawInput, typeof rawInput);
+    console.log("raw", rawInput, typeof rawInput);
 
-    if (!rawInput || (typeof rawInput !== 'string')) {
-      console.error('No input list or invalid one. Use -l "a b c d e f g h" using integer values.')
+    if (!rawInput || typeof rawInput !== "string") {
+      console.error(
+        'No input list or invalid one. Use -l "a b c d e f g h" using integer values.'
+      );
       process.exit(-1);
     }
 
     // convert space-separated string into number array
-    const input = rawInput.split(' ').filter(x => x !== '').map(Number);
+    const input = rawInput
+      .split(" ")
+      .filter(x => x !== "")
+      .map(Number);
 
     if (input.findIndex(x => isNaN(x)) >= 0) {
-      console.error('Input list includes some non-numeric value.');
+      console.error("Input list includes some non-numeric value.");
       process.exit(-1);
     }
 
-    const func = slow ? module.exports.findKPairs_slow : module.exports.findKPairs_fast;
+    const func = slow
+      ? module.exports.findKPairs_slow
+      : module.exports.findKPairs_fast;
 
-    console.time('elapsed time');
+    console.time("elapsed time");
     const result = func(k, input);
-    console.timeEnd('elapsed time');
+    console.timeEnd("elapsed time");
 
     console.log();
     console.log(`K-pairs (K=${k}):`);
-    result && result.forEach(pair => console.log(`> [${pair[0]} , ${pair[1]}]`));
+    result &&
+      result.forEach(pair => console.log(`> [${pair[0]} , ${pair[1]}]`));
   }
 }
