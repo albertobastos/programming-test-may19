@@ -194,7 +194,9 @@ function getTfs_logNormalization(frequencies, wordCount, terms) {
 // IDF VARIANTS
 // ============
 
-// idf as "inverse document frequency": for each term, logarithm of the relation between the total amount of documents and the number of documents with that term
+// idf as "inverse document frequency": for each term, logarithm of 
+// the relation between the total amount of documents and the number 
+// of documents with that term
 function getIdfs_standard(totalDocuments, docsByTerm, terms) {
   return terms.reduce((acc, term) => {
     const termDocumentCount = docsByTerm[term] || 0;
@@ -204,7 +206,8 @@ function getIdfs_standard(totalDocuments, docsByTerm, terms) {
   }, {});
 }
 
-// idf as "inverse document frequency smooth": same as standard, but plus 1 to avoid terms not included in any document
+// idf as "inverse document frequency smooth": same as standard, 
+// but plus 1 to avoid terms not included in any document
 function getIdfs_smooth(totalDocuments, docsByTerm, terms) {
   return terms.reduce((acc, term) => {
     acc[term] = Math.log(totalDocuments / (1 + (docsByTerm[term] || 0)));
