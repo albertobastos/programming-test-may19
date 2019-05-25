@@ -7,7 +7,7 @@
 
 ### Parameters
 
-* **-test**: Launches the program in a special test mode that validates a predefined set of inputs and outputs the elapsed time. Any other parameter will be ignored.
+* *--test*: Launches the program in a special test mode that validates a predefined set of inputs and outputs the elapsed time. Any other parameter will be ignored.
 
 # Part 2: K-complementary pairs
 
@@ -21,7 +21,7 @@
 
 * *--k*: K target value for the K-complimentary pairs.
 * *--l*: Whitespace separated list of integer values.
-* *--slow*: Use slow algorithm instead of the default one.
+* *--slow*: Uses a slow algorithm version instead of the default, faster one.
 * *--test*: Launches the program in a special test mode that compares the slow and fast algorithms with random inputs of increasing size. Any other parameter will be ignored.
 
 # Part 3: Term-frequency daemon
