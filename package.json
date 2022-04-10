@@ -19,6 +19,6 @@
   "dependencies": {
     "console-stamp": "^0.2.7",
     "event-stream": "^4.0.1",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.6"
   }
 }
